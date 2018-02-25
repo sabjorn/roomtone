@@ -1,0 +1,1 @@
+This codebase is to generate models for different configurations of the speaker+microphone setup and to analyze the impulse response recorded from setups.
