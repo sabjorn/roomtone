@@ -1,0 +1,25 @@
+roomtone:
+  global:
+    overloadThresh: -3.0
+    resetThresh: -26.0
+    adcInput: 3
+    digitalGain: 1.0
+    outputGain: 0.0
+    maxDelay: 300000
+    baseDelayMin: 100.0
+    baseDelayMax: 500.0
+    baseDelayInterval: 0.05
+    enableRandomInterval: 1
+    fullscreen: 1
+  channel1:
+    output: 3
+    interval: 12
+  channel2:
+    output: 5
+    interval: 7
+  channel3:
+    output: 6
+    interval: 5
+  channel4:
+    output: 4
+    interval: 1
