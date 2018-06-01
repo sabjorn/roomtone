@@ -128,5 +128,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+.bash_history
 
 # End of https://www.gitignore.io/api/macos,python
