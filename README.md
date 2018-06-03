@@ -18,6 +18,8 @@ Because of the effect of the location--the room--on the piece, this is a site sp
 
 While an onsite visit is ideal, the code has been configured to have the necessary parameters easily adjustable with little technical knowledge.
 
+Assuming the easily stolen items (computer and soundcard) are placed in an inaccessible area, the piece can be easily protected with a single person holding watch over the gallery. Generally the speakers are too heavy and the microphone too high up to steal.
+
 ## Previous Installs
 * [Pretty Good Not Bad (PGNB) Festival](https://prettygoodnotbad.ca/artists/steven-bjornson/) - 05/17/18 to 05/20/18 - Victoria, BC
 * [Open Space Arts Society Listening Room](http://openspace.ca/GuestHouse) - 04/10/15 to 05/28/15 - Victoria, BC
