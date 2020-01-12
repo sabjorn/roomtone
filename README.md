@@ -21,8 +21,9 @@ While an onsite visit is ideal, the code has been configured to have the necessa
 Assuming the easily stolen items (computer and soundcard) are placed in an inaccessible area, the piece can be easily protected with a single person holding watch over the gallery. Generally the speakers are too heavy and the microphone too high up to steal.
 
 ## Previous Installs
-* [Pretty Good Not Bad (PGNB) Festival](https://prettygoodnotbad.ca/artists/steven-bjornson/) - 05/17/18 to 05/20/18 - Victoria, BC
-* [Open Space Arts Society Listening Room](http://openspace.ca/GuestHouse) - 04/10/15 to 05/28/15 - Victoria, BC
+* [Neospektiv Gallery](http://neospektiv.de/) - 17/01/20 to 19/01/20 - Düsseldorf, DE
+* [Pretty Good Not Bad (PGNB) Festival](https://prettygoodnotbad.ca/artists/steven-bjornson/) - 17/05/18 to 20/05/18 - Victoria, BC
+* [Open Space Arts Society Listening Room](http://openspace.ca/GuestHouse) - 10/04/15 to 28/05/15 - Victoria, BC
 
 ## Documentation
 Videos can be found [here](https://vimeo.com/album/3265316)
