@@ -5,11 +5,11 @@
 //!
 //! Uses a delay of `LATENCY_MS` milliseconds in case the default input and output streams are not
 //! precisely synchronised.
-
 use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use ringbuf::HeapRb;
 use anyhow;
+use roomtone::WriteHead;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "CPAL feedback example", long_about = None)]
@@ -131,6 +131,7 @@ fn main() -> anyhow::Result<()> {
         producer.push(0.0).unwrap();
     }
 
+    
     let input_data_fn = move |data: &[f32], _: &cpal::InputCallbackInfo| {
         for &sample in data {
             producer.push(sample).unwrap_or_else(|_| {
@@ -138,11 +139,22 @@ fn main() -> anyhow::Result<()> {
             });
         }
     };
+    
+    let fs = config.sample_rate.0 as usize;
+    let mut write_head = WriteHead::new(fs * 10);
+    let mut read_buffer = write_head.as_readhead(fs * 1); 
+    let mut read_buffer_2 = write_head.as_readhead(fs * 3);
+    let mut read_buffer_3 = write_head.as_readhead(fs * 5);
 
     let output_data_fn = move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
         for sample in data {
             *sample = match consumer.pop() {
-                Some(s) => s,
+                Some(s) => {
+                    write_head.push(s);
+
+                    let delayed_sample = (read_buffer.next().unwrap() + read_buffer_2.next().unwrap() + read_buffer_3.next().unwrap()) / 3.0;
+                    delayed_sample
+                }
                 None => {
                     eprintln!("input stream fell behind: try increasing latency");
                     0.0
@@ -163,14 +175,13 @@ fn main() -> anyhow::Result<()> {
     // Play the streams.
     println!(
         "Starting the input and output streams with `{}` milliseconds of latency.",
-        (opt.latency as f32 / 1_000.0) * config.sample_rate.0 as f32
+         (1000.0 /  config.sample_rate.0 as f32) * (opt.latency as f32)
     );
     input_stream.play()?;
     output_stream.play()?;
 
-    // Run for 3 seconds before closing.
-    println!("Playing for 3 seconds... ");
-    std::thread::sleep(std::time::Duration::from_secs(3));
+    println!("Playing");
+    std::thread::park();
     drop(input_stream);
     drop(output_stream);
     println!("Done!");
