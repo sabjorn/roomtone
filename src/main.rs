@@ -150,9 +150,14 @@ fn main() -> anyhow::Result<()> {
         for sample in data {
             *sample = match consumer.pop() {
                 Some(s) => {
-                    write_head.push(s);
+                    let s1 = read_buffer.next().unwrap();
+                    let s2 = read_buffer_2.next().unwrap();
+                    let s3 = read_buffer_3.next().unwrap();
+                   
+                    let feedback = (s + (s1 * 0.25) + (s2 * 0.5) + (s3 * 0.75)) / 4.0;
+                    write_head.push(feedback);
 
-                    let delayed_sample = (read_buffer.next().unwrap() + read_buffer_2.next().unwrap() + read_buffer_3.next().unwrap()) / 3.0;
+                    let delayed_sample = (s1 + s2 + s3) / 3.0;
                     delayed_sample
                 }
                 None => {
