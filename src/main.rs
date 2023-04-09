@@ -9,7 +9,9 @@ use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use ringbuf::HeapRb;
 use anyhow;
-use roomtone::WriteHead;
+
+mod multitap;
+use multitap::WriteHead;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "CPAL feedback example", long_about = None)]
