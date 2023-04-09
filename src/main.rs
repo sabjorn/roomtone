@@ -1,14 +1,8 @@
-//! Feeds back the input stream directly into the output stream.
-//!
-//! Assumes that the input and output devices can use the same stream configuration and that they
-//! support the f32 sample format.
-//!
-//! Uses a delay of `LATENCY_MS` milliseconds in case the default input and output streams are not
-//! precisely synchronised.
+use anyhow;
 use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use ringbuf::HeapRb;
-use anyhow;
+use roomtone::{Config};
 
 mod multitap;
 use multitap::WriteHead;
