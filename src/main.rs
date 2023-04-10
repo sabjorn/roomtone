@@ -126,14 +126,9 @@ fn main() -> anyhow::Result<()> {
         // so this should never fail
         producer.push(0.0).unwrap();
     }
-
     
     let input_data_fn = move |data: &[f32], _: &cpal::InputCallbackInfo| {
-        for &sample in data {
-            producer.push(sample).unwrap_or_else(|_| {
-                eprintln!("output stream fell behind: try increasing latency");
-            });
-        }
+        producer.push_slice(data);
     };
     
     let fs = config.sample_rate.0 as usize;
