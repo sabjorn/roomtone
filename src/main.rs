@@ -22,6 +22,9 @@ struct Opt {
     #[arg(short, long, value_name = "DELAY_MS", default_value_t = 512)]
     latency: usize,
 
+    #[arg(short, long, value_name = "CONFIG_FILE")]
+    config_file: Option<String>,
+
     /// Use the JACK host
     #[cfg(all(
         any(
