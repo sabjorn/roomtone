@@ -110,20 +110,14 @@ fn main() -> anyhow::Result<()> {
     println!("Using input device: \"{}\"", input_device.name()?);
     println!("Using output device: \"{}\"", output_device.name()?);
 
-    // We'll try and use the same configuration between streams to keep it simple.
     let config: cpal::StreamConfig = input_device.default_input_config()?.into();
 
-    // Create a delay in case the input and output devices aren't synced.
     let latency_samples = opt.latency * config.channels as usize;
 
-    // The buffer to share samples
     let ring = HeapRb::<f32>::new(latency_samples * 2);
     let (mut producer, mut consumer) = ring.split();
 
-    // Fill the samples with 0.0 equal to the length of the delay.
     for _ in 0..latency_samples {
-        // The ring buffer has twice as much space as necessary to add latency here,
-        // so this should never fail
         producer.push(0.0).unwrap();
     }
     
