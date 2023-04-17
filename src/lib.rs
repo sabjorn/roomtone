@@ -1,26 +1,18 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct Channel {
-    index: u8, // can just be vector index, not needed
-    output: u8,
-    interval: u8,
+pub struct Channel {
+    pub interval: u8,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
-    overload_thresh: f64,
-    reset_thresh: f64,
-    adc_input: u16, // sets input channel -- currently not used
+    pub overload_thresh: f64,
+    pub reset_thresh: f64,
     pub digital_gain: f64, // gain applied to ADC input
     pub output_gain: f64, // gain applied post delay
-    max_delay: u64, // set maximum expected delay time -- can be just 2 x largest 
-    base_delay_min: f64, // set minimum for random interval range -- not used
-    base_delay_max: f64, // set maximum for random interval range -- not used
-    base_delay_interval: f64, // the delay time (s)
-    enable_random_interval: bool, // enables random -- not used
-    fullscreen: bool, // fullscreen for max/msp -- not used
-    channels: Vec<Channel>,
+    pub base_delay_interval: f64, // the delay time (s)
+    pub channels: Vec<Channel>,
 }
 
 impl Config {

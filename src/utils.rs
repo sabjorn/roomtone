@@ -6,9 +6,15 @@ pub fn to_gain(db: f32) -> f32 {
     10.0_f32.powf(db / 20.0_f32)
 }
 
+pub fn rms(buffer: &[f32]) -> f32 {
+    let mean_squared: f32 = buffer.iter().map(|&x| x.powf(2.0)).sum();
+    let mean = mean_squared / buffer.len() as f32;
+    mean.sqrt()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{to_db, to_gain};
+    use super::*;
 
     #[test]
     pub fn to_db_produces_correct_value() {
@@ -33,6 +39,14 @@ mod tests {
         let db = to_db(gain);
 
         assert_eq!(to_gain(db), gain);
+    }
+
+    #[test]
+    pub fn rms_calculates_correctly() {
+        let vec = vec![-1.0, 0.0, 1.0, 0.0];
+        let rms = rms(&vec);
+
+        assert_eq!(rms, 0.5_f32.sqrt());
     }
 }
 
