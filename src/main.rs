@@ -1,8 +1,13 @@
+use std::fs::File;
+use std::io::Read;
 use anyhow;
 use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use ringbuf::HeapRb;
 use roomtone::{Config};
+
+mod utils;
+use utils::to_gain;
 
 mod multitap;
 use multitap::WriteHead;
@@ -22,7 +27,7 @@ struct Opt {
     #[arg(short, long, value_name = "DELAY_MS", default_value_t = 512)]
     latency: usize,
 
-    #[arg(short, long, value_name = "CONFIG_FILE")]
+    #[arg(short = 'c', long = "config_file", required=true, value_name = "CONFIG_FILE")]
     config_file: Option<String>,
 
     /// Use the JACK host
@@ -78,6 +83,17 @@ fn setup_host(_opt: &Opt) -> cpal::Host {
 
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
+
+    let yaml_config =  {
+            let filename = opt.config_file.clone().expect("this should never happen as config_file is required");
+            let mut f = File::open(filename).expect("Can't read YAML file");
+    
+            let mut s = String::new();
+            f.read_to_string(&mut s).unwrap();
+
+            let config: Config = serde_yaml::from_str(&s)?;
+            config
+        }; 
     
     let host = setup_host(&opt);
 
@@ -129,24 +145,30 @@ fn main() -> anyhow::Result<()> {
     };
     
     let fs = config.sample_rate.0 as usize;
-    let mut write_head = WriteHead::new(fs * 10);
-    let mut read_buffer = write_head.as_readhead(fs * 1); 
-    let mut read_buffer_2 = write_head.as_readhead(fs * 3);
-    let mut read_buffer_3 = write_head.as_readhead(fs * 5);
+    let maximum_delay = yaml_config.get_max_interval() as f64 * yaml_config.base_delay_interval * fs as f64 * 2.0_f64;
+    let mut write_head = WriteHead::new(maximum_delay as usize);
+
+    let channel_delay = (yaml_config.channels[0].interval as f64 * yaml_config.base_delay_interval * fs as f64 * 2.0_f64) - latency_samples as f64;
+    let mut read_head = write_head.as_readhead(channel_delay as usize); 
+
+    let input_gain = to_gain(yaml_config.digital_gain as f32);
+    let output_gain = to_gain(yaml_config.output_gain as f32);
 
     let output_data_fn = move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+        // let overload
+        // let reset
+
         for sample in data {
             *sample = match consumer.pop() {
                 Some(s) => {
-                    let s1 = read_buffer.next().unwrap();
-                    let s2 = read_buffer_2.next().unwrap();
-                    let s3 = read_buffer_3.next().unwrap();
-                   
-                    let feedback = (s + (s1 * 0.25) + (s2 * 0.5) + (s3 * 0.75)) / 4.0;
-                    write_head.push(feedback);
+                    let x = input_gain * s;
+                    write_head.push(x);
+                    // yaml_config.overload_thresh, peak? -- kill program?
 
-                    let delayed_sample = (s1 + s2 + s3) / 3.0;
-                    delayed_sample
+                    // yaml_config.reset_thresh, clear
+                    let x_1 = read_head.next().unwrap() * output_gain;
+                     
+                    x_1
                 }
                 None => {
                     eprintln!("input stream fell behind: try increasing latency");
