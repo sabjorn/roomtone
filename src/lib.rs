@@ -35,19 +35,13 @@ mod tests {
         let config = Config {
             overload_thresh: 0.0_f64,
             reset_thresh: 0.0_f64,
-            adc_input: 0_u16,
             digital_gain: 0.0_f64,
             output_gain: 0.0_f64,
-            max_delay: 0_u64,
-            base_delay_min: 0.0_f64,
-            base_delay_max: 0.0_f64,
             base_delay_interval: 0.0_f64,
-            enable_random_interval: false,
-            fullscreen: false,
             channels: vec![
-                Channel {index: 0_u8, output: 0_u8, interval: 4_u8},
-                Channel {index: 0_u8, output: 0_u8, interval: 12_u8},
-                Channel {index: 0_u8, output: 0_u8, interval: 9_u8},],
+                Channel {interval: 4_u8},
+                Channel {interval: 12_u8},
+                Channel {interval: 9_u8},],
         };
 
         let max_interval = config.get_max_interval();
