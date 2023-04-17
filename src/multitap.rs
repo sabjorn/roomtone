@@ -68,6 +68,10 @@ impl WriteHead {
     pub fn as_readhead(&self, delay_samples: usize) -> ReadHead {
         ReadHead::new(self, delay_samples)
     }
+
+    pub fn clear(&mut self) {
+        self.buffer.fill(0.0);
+    }
 }
 
 impl Iterator for WriteHead {

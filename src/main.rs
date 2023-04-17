@@ -1,13 +1,14 @@
 use std::fs::File;
 use std::io::Read;
+
 use anyhow;
 use clap::Parser;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use ringbuf::HeapRb;
-use roomtone::{Config};
 
+use roomtone::Config;
 mod utils;
-use utils::to_gain;
+use utils::{to_gain, to_db, rms};
 
 mod multitap;
 use multitap::WriteHead;
@@ -155,8 +156,13 @@ fn main() -> anyhow::Result<()> {
     let output_gain = to_gain(yaml_config.output_gain as f32);
 
     let output_data_fn = move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-        // let overload
-        // let reset
+        let rms = to_db(rms(data));
+        if rms > yaml_config.reset_thresh as f32 {
+            println!("rms {} exceeded thresh {}", rms, yaml_config.reset_thresh as f32);
+            write_head.clear();
+        };
+        
+        //let peak: f32 = data.iter().map(|&x| x.abs()).max();
 
         for sample in data {
             *sample = match consumer.pop() {
@@ -167,7 +173,7 @@ fn main() -> anyhow::Result<()> {
 
                     // yaml_config.reset_thresh, clear
                     let x_1 = read_head.next().unwrap() * output_gain;
-                     
+                    
                     x_1
                 }
                 None => {
