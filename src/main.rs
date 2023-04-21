@@ -130,7 +130,8 @@ fn main() -> anyhow::Result<()> {
     println!("Using input device: \"{}\"", input_device.name()?);
     println!("Using output device: \"{}\"", output_device.name()?);
 
-    let config: cpal::StreamConfig = input_device.default_input_config()?.into();
+    let mut config: cpal::StreamConfig = input_device.default_input_config()?.into();
+    config.buffer_size = cpal::BufferSize::Fixed(2048);
 
     let latency_samples = opt.latency * config.channels as usize;
 
