@@ -25,10 +25,13 @@ struct Opt {
     #[arg(short, long, value_name = "OUT", default_value_t = String::from("default"))]
     output_device: String,
 
-    #[arg(short, long, value_name = "DELAY_MS", default_value_t = 512)]
+    #[arg(short = 'd', long, value_name = "DELAY_SAMPLES", default_value_t = 512)]
     latency: usize,
 
-    #[arg(short = 'c', long = "config_file", required=true, value_name = "CONFIG_FILE")]
+    #[arg(short = 'l', long, value_name = "HARDWARE_LATENCY")]
+    hwlatency: Option<u32>,
+
+    #[arg(short = 'c', long = "config_file", value_name = "CONFIG_FILE")]
     config_file: Option<String>,
 
     /// Use the JACK host
@@ -130,8 +133,16 @@ fn main() -> anyhow::Result<()> {
     println!("Using input device: \"{}\"", input_device.name()?);
     println!("Using output device: \"{}\"", output_device.name()?);
 
-    let mut config: cpal::StreamConfig = input_device.default_input_config()?.into();
-    config.buffer_size = cpal::BufferSize::Fixed(2048);
+    let config: cpal::StreamConfig = match opt.hwlatency {
+        Some(hwlatency) => {
+            let mut config: cpal::StreamConfig = input_device.default_input_config()?.into();
+            config.buffer_size = cpal::BufferSize::Fixed(hwlatency);
+            config
+        }
+        None => {
+            input_device.default_input_config()?.into()
+        }
+    };
 
     let latency_samples = opt.latency * config.channels as usize;
 
