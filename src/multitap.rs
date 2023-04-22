@@ -1,13 +1,15 @@
 use std::ops::{Index, IndexMut};
+use num_traits::Num;
 
-pub struct ReadHead {
-    buffer : * const [f32],
+
+pub struct ReadHead<T: Num + core::marker::Copy + std::clone::Clone> {
+    buffer : * const [T],
     size : usize,
     head_position : usize,
 }
 
-impl ReadHead{
-    pub fn new(write_head: &WriteHead, delay_samples: usize) -> ReadHead {
+impl<T: Num + core::marker::Copy + std::clone::Clone> ReadHead<T>{
+    pub fn new(write_head: &WriteHead<T>, delay_samples: usize) -> ReadHead<T> {
         ReadHead {buffer: write_head.buffer.as_slice(), size: write_head.buffer.len(), head_position: (write_head.buffer.len() - delay_samples) % write_head.buffer.len()}
     }
     pub fn seek(&mut self, position: usize){
@@ -15,10 +17,10 @@ impl ReadHead{
     }
 }
 
-impl Iterator for ReadHead {
-    type Item = f32;
+impl<T: Num + core::marker::Copy + std::clone::Clone> Iterator for ReadHead<T> {
+    type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        let sample: f32;
+        let sample: T;
         unsafe {
             sample = (*self.buffer)[self.head_position];
         }
@@ -28,9 +30,9 @@ impl Iterator for ReadHead {
     }
 }
 
-impl Index<usize> for ReadHead {
-    type Output = f32;
-    fn index(&self, i: usize) -> &f32 {
+impl<T: Num + core::marker::Copy + std::clone::Clone> Index<usize> for ReadHead<T> {
+    type Output = T;
+    fn index(&self, i: usize) -> &T {
         let current_position = i % self.size;
         unsafe {
             &(*self.buffer)[current_position]
@@ -38,22 +40,22 @@ impl Index<usize> for ReadHead {
     }
 }
 
-unsafe impl Send for ReadHead {}
+unsafe impl<T: Num + core::marker::Copy + std::clone::Clone> Send for ReadHead<T> {}
 
-pub struct WriteHead {
-    buffer : Vec<f32>,
+pub struct WriteHead<T: Num + core::marker::Copy + std::clone::Clone> {
+    buffer : Vec<T>,
     head_position : usize,
 }
 
-unsafe impl Send for WriteHead {}
+unsafe impl<T: Num + core::marker::Copy + std::clone::Clone> Send for WriteHead<T> {}
 
-impl WriteHead {
-    pub fn new(size: usize) -> WriteHead {
-        let buffer = vec![0.; size];
+impl<T: Num + core::marker::Copy + std::clone::Clone> WriteHead<T> {
+    pub fn new(size: usize) -> WriteHead<T> where T: Default {
+        let buffer = vec![Default::default(); size];
         WriteHead {buffer, head_position: 0}
     }
 
-    pub fn push(&mut self, element: f32) {
+    pub fn push(&mut self, element: T) {
         self.buffer[self.head_position] = element;
         self.increment();
     }
@@ -65,17 +67,17 @@ impl WriteHead {
     pub fn seek(&mut self, position: usize){
         self.head_position = if position > self.buffer.len() { 0 } else { position };
     }
-    pub fn as_readhead(&self, delay_samples: usize) -> ReadHead {
+    pub fn as_readhead(&self, delay_samples: usize) -> ReadHead<T> {
         ReadHead::new(self, delay_samples)
     }
 
-    pub fn clear(&mut self) {
-        self.buffer.fill(0.0);
+    pub fn clear(&mut self) where T: Default {
+        self.buffer.fill(Default::default());
     }
 }
 
-impl Iterator for WriteHead {
-    type Item = f32;
+impl<T: Num + core::marker::Copy + std::clone::Clone> Iterator for WriteHead<T> {
+    type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         let sample = self.buffer[self.head_position];
         self.increment();
@@ -84,15 +86,15 @@ impl Iterator for WriteHead {
     }
 }
 
-impl Index<usize> for WriteHead {
-    type Output = f32;
-    fn index(&self, i: usize) -> &f32 {
+impl<T: Num + core::marker::Copy + std::clone::Clone> Index<usize> for WriteHead<T> {
+    type Output = T;
+    fn index(&self, i: usize) -> &T {
         let current_position = i % self.buffer.len();
         &self.buffer[current_position]
     }
 }
-impl IndexMut<usize> for WriteHead {
-    fn index_mut(&mut self, i: usize) -> &mut f32 {
+impl<T: Num + core::marker::Copy + std::clone::Clone> IndexMut<usize> for WriteHead<T> {
+    fn index_mut(&mut self, i: usize) -> &mut T {
         let current_position = i % self.buffer.len();
         &mut self.buffer[current_position]
     }
@@ -103,17 +105,29 @@ mod tests {
     use super::*;
 
     #[test]
+    pub fn read_head_is_generic() {
+        {
+            let mut write_head = WriteHead::new(1);
+            write_head.push(0);
+        }
+        {
+            let mut write_head = WriteHead::new(1);
+            write_head.push(0_f32);
+        }
+    }
+
+    #[test]
     pub fn read_head_with_delay_output_equals_write_head() {
         let mut write_head = WriteHead::new(5);
 
-        write_head.push(1.0);
+        write_head.push(1);
        
         for n in 0..4 {
             let mut read_head = write_head.as_readhead(n);
             for j in 0..4 {
                 let val = read_head.next().unwrap();
                 if j == n {
-                    assert_eq!(val, 1.0)
+                    assert_eq!(val, 1)
                 }
             }
         }
